@@ -15,12 +15,17 @@ build:
 
 deploy:
   stage: deploy
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-elasticbeanstalk-eb-deploy:0.1
-  variables:
-    AWS_DEFAULT_REGION: "us-east-1"
-    AWS_ACCESS_KEY_ID: "$AWS_ACCESS_KEY_ID"
-    AWS_SECRET_ACCESS_KEY: "$AWS_SECRET_ACCESS_KEY"
-    AWS_EB_ENVIRONMENT_NAME: "React-GitLab-env"
+  image: python:latest
   script:
-    - eb init --region $AWS_DEFAULT_REGION --platform "Node.js 14" --no-verify-ssl
+    - apt-get update -qq && apt-get install -y -qq python3-pip
+    - pip3 install --upgrade awscli
+    - pip3 install --upgrade awsebcli
+    - echo "DEPLOYMENT_ENV=production" >> .env
+    - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> .env
+    - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
+    - echo "AWS_REGION=us-east-1" >> .env
+    - eb init -r us-east-1 -p "Node.js 14" React-GitLab
     - eb deploy
+  only:
+    - main
+
