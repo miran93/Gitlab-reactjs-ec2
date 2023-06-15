@@ -2,30 +2,27 @@ image: node:14
 
 stages:
   - build
+  - package
   - deploy
+
+before_script:
+  - npm install
 
 build:
   stage: build
   script:
-    - npm ci
     - npm run build
-  artifacts:
-    paths:
-      - build/
+
+package:
+  stage: package
+  script:
+    - mkdir artifacts
+    - tar -czvf artifacts/app.tar.gz build/
 
 deploy:
   stage: deploy
-  image: python:latest
   script:
-    - apt-get update -qq && apt-get install -y -qq python3-pip
-    - pip3 install --upgrade awscli
-    - pip3 install --upgrade awsebcli
-    - echo "DEPLOYMENT_ENV=production" >> .env
-    - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> .env
-    - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
-    - echo "AWS_REGION=us-east-1" >> .env
-    - eb init -r us-east-1 -p "Node.js 14" React-GitLab
-    - eb deploy
-  only:
-    - main
-
+    - apt-get install -y sshpass
+    - sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no artifacts/app.tar.gz $SSH_USER@$SSH_HOST:/home/$SSH_USER
+    - sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "sudo rm -rf /var/www/html/*"
+    - sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "sudo tar -xzvf /home/$SSH_USER/app.tar.gz -C /var/www/html"
