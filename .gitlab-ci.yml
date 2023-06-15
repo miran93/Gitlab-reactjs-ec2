@@ -21,8 +21,10 @@ package:
 deploy:
   stage: deploy
   script:
-    deploy:
-  stage: deploy
-  script:
-    - apt-get install -y openssh-client
-    - scp -o StrictHostKeyChecking=no -r build/ $SSH_USER@$SSH_HOST:/var/www/html/
+    - apt-get install -y putty-tools
+    - echo y | plink.exe -ssh -pw $SSH_PASSWORD $SSH_USER@$SSH_HOST "mkdir -p /var/www/html"
+    - psftp.exe -pw $SSH_PASSWORD $SSH_USER@$SSH_HOST -b - <<EOF
+        put -r build/ /var/www/html/
+        quit
+      EOF
+
