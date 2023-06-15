@@ -21,7 +21,5 @@ package:
 deploy:
   stage: deploy
   script:
-    - apt-get install -y sshpass
-    - sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no artifacts/app.tar.gz $SSH_USER@$SSH_HOST:/home/$SSH_USER
-    - sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "sudo rm -rf /var/www/html/*"
-    - sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "sudo tar -xzvf /home/$SSH_USER/app.tar.gz -C /var/www/html"
+    - apt-get install -y rsync
+    - rsync -avz -e "ssh -o StrictHostKeyChecking=no" build/ $SSH_USER@$SSH_HOST:/var/www/html/
