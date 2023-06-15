@@ -21,5 +21,8 @@ package:
 deploy:
   stage: deploy
   script:
-    - apt-get install -y rsync
-    - rsync -avz -e "ssh -o StrictHostKeyChecking=no" build/ $SSH_USER@$SSH_HOST:/var/www/html/
+    deploy:
+  stage: deploy
+  script:
+    - apt-get install -y openssh-client
+    - scp -o StrictHostKeyChecking=no -r build/ $SSH_USER@$SSH_HOST:/var/www/html/
