@@ -29,4 +29,7 @@ deploy:
     - apt-get update -y
     - apt-get -y install rsync
     - '[[ -f /.dockerenv ]] && echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts'
+    - ssh $SSH_USER@$SSH_HOST 'mkdir -p /var/www/html/'
+    - ssh $SSH_USER@$SSH_HOST 'sudo chown -R $SSH_USER:$SSH_USER /var/www/html/'
+    - ssh $SSH_USER@$SSH_HOST 'sudo chmod -R u+w /var/www/html/'
     - scp -r -i $id_rsa build/ $SSH_USER@$SSH_HOST:/var/www/html/
