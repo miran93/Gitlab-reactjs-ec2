@@ -24,5 +24,9 @@ deploy:
     - echo "$SSH_PRIVATE_KEY" | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
+    - chmod 400 $id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - apt-get update -y
+    - apt-get -y install rsync
     - '[[ -f /.dockerenv ]] && echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts'
-    - scp -r -o StrictHostKeyChecking=no build/ $SSH_USER@$SSH_HOST:/var/www/html/
+    - scp -r -i $id_rsa StrictHostKeyChecking=no build/ $SSH_USER@$SSH_HOST:/var/www/html/
