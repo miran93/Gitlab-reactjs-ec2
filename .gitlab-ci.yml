@@ -1,30 +1,28 @@
-image: node:14
-
 stages:
   - build
-  - package
   - deploy
 
 build:
   stage: build
-  before_script:
-  - npm install
+  image: node:lts
   script:
+    - npm install
     - npm run build
-
-package:
-  stage: package
-  script:
-    - mkdir artifacts
-    - tar -czvf artifacts/app.tar.gz build/
+  artifacts:
+    paths:
+      - build/
 
 deploy:
   stage: deploy
+  image: ubuntu:latest
+  before_script:
+    - apt-get update
+    - apt-get install -y openssh-client
   script:
-    - apt-get install -y putty-tools
-    - echo y | plink.exe -ssh -pw $SSH_PASSWORD $SSH_USER@$SSH_HOST "mkdir -p /var/www/html"
-    - psftp.exe -pw $SSH_PASSWORD $SSH_USER@$SSH_HOST -b - <<EOF
-        put -r build/ /var/www/html/
-        quit
-      EOF
-
+    - 'which ssh-agent || (apt-get install -y openssh-client)'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts'
+    - scp -r -o StrictHostKeyChecking=no build/ $SSH_USER@$SSH_HOST:/var/www/html/
